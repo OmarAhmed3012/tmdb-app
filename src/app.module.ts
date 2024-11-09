@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AppController } from './app.controller';
-// Import your modules here
+import { TmdbModule } from './tmdb/tmdb.module';
+import { MoviesModule } from './movies/movies.module';
+import { GenresModule } from './genres/genres.module';
+import { DataSeedService } from './database/data-seed.service';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -16,9 +16,11 @@ import { AppController } from './app.controller';
       }),
       inject: [ConfigService],
     }),
-    // Add your modules here
+    TmdbModule,
+    MoviesModule,
+    GenresModule,
+    // Other modules...
   ],
-  controllers: [AppController],
-  providers: [],
+  providers: [DataSeedService],
 })
 export class AppModule {}
