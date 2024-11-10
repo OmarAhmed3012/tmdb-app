@@ -5,6 +5,9 @@ import { TmdbModule } from './tmdb/tmdb.module';
 import { MoviesModule } from './movies/movies.module';
 import { GenresModule } from './genres/genres.module';
 import { DataSeedService } from './database/data-seed.service';
+import { RatingsModule } from './ratings/ratings.module';
+import { AppController } from './app.controller';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -19,6 +22,8 @@ import { DataSeedService } from './database/data-seed.service';
     TmdbModule,
     MoviesModule,
     GenresModule,
+    RatingsModule,
+    UsersModule,
     // Other modules...
   ],
   providers: [DataSeedService],

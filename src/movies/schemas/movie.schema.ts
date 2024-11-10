@@ -32,7 +32,7 @@ export class Movie {
   @Prop()
   vote_count: number;
 
-  // Add more fields as needed
+  averageRating?: number;
 }
 
 export const MovieSchema = SchemaFactory.createForClass(Movie);

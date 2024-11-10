@@ -2,12 +2,23 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Movie, MovieDocument } from './schemas/movie.schema';
+import { Genre, GenreDocument } from '../genres/schemas/genre.schema';
 import { TmdbService } from '../tmdb/tmdb.service';
+import { RatingsService } from 'src/ratings/ratings.service';
+
+interface FindAllOptions {
+  search?: string;
+  genre?: string;
+  page?: number;
+  limit?: number;
+}
 
 @Injectable()
 export class MoviesService {
   constructor(
     @InjectModel(Movie.name) private movieModel: Model<MovieDocument>,
+    @InjectModel(Genre.name) private genreModel: Model<GenreDocument>,
+    private readonly ratingsService: RatingsService,
     private readonly tmdbService: TmdbService,
   ) {}
 
@@ -41,5 +52,42 @@ export class MoviesService {
 
   async findAll(): Promise<Movie[]> {
     return this.movieModel.find().exec();
+  }
+
+  async findAllOptions(options: FindAllOptions): Promise<any[]> {
+    const { search, genre, page = 1, limit = 10 } = options;
+    const skip = (page - 1) * limit;
+
+    const query: any = {};
+
+    if (search) {
+      query.title = { $regex: search, $options: 'i' }; // Case-insensitive search
+    }
+
+    if (genre) {
+      const genreDoc = await this.genreModel.findOne({ name: genre }).exec();
+      if (genreDoc) {
+        query.genre_ids = genreDoc.id;
+      } else {
+        // If the genre doesn't exist, return an empty array
+        return [];
+      }
+    }
+
+    const movies = await this.movieModel
+      .find(query)
+      .skip(skip)
+      .limit(limit)
+      .lean()
+      .exec();
+
+    // Include average ratings
+    for (const movie of movies) {
+      movie.averageRating = await this.ratingsService.getAverageRating(
+        movie.id,
+      );
+    }
+
+    return movies;
   }
 }
